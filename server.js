@@ -2,13 +2,13 @@ const express = require('express');
 const path = require('path');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-// Middleware to parse JSON bodies and serve static frontend files
+// Middleware to parse JSON requests and serve frontend files
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// In-memory data store
+// In-memory database storing book details (ID, title, author, price)
 let books = [
   { id: 1, title: 'The Pragmatic Programmer', author: 'Andrew Hunt', price: 450 },
   { id: 2, title: 'Clean Code', author: 'Robert C. Martin', price: 520 }
@@ -20,7 +20,7 @@ app.get('/books', (req, res) => {
   res.status(200).json(books);
 });
 
-// 2. GET /books/:id - Retrieve a particular book by ID
+// 2. GET /books/:id - Retrieve a particular book using its ID
 app.get('/books/:id', (req, res) => {
   const id = parseInt(req.params.id);
   const book = books.find(b => b.id === id);
@@ -36,7 +36,7 @@ app.post('/books', (req, res) => {
   const { title, author, price } = req.body;
 
   if (!title || !author || price === undefined || isNaN(price) || Number(price) < 0) {
-    return res.status(400).json({ message: 'Please provide valid title, author, and price.' });
+    return res.status(400).json({ message: 'Please enter a valid title, author, and price.' });
   }
 
   const newBook = {
@@ -61,7 +61,7 @@ app.put('/books/:id', (req, res) => {
   }
 
   if (!title || !author || price === undefined || isNaN(price) || Number(price) < 0) {
-    return res.status(400).json({ message: 'Please provide valid title, author, and price.' });
+    return res.status(400).json({ message: 'Please enter a valid title, author, and price.' });
   }
 
   books[bookIndex] = {
@@ -84,15 +84,15 @@ app.delete('/books/:id', (req, res) => {
   }
 
   const deletedBook = books.splice(bookIndex, 1);
-  res.status(200).json({ message: 'Book deleted successfully!', book: deletedBook[0] });
+  res.status(200).json({ message: 'Book deleted successfully!', book: deletedBook });
 });
 
-// Global error handler
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Internal Server Error' });
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });
