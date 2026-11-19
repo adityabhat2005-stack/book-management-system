@@ -15,7 +15,7 @@ const searchIdInput = document.getElementById('search-id');
 const searchBtn = document.getElementById('search-btn');
 const resetBtn = document.getElementById('reset-btn');
 
-// Show status/error messages
+// Display notification messages
 function showMessage(text, type = 'success') {
   messageBox.textContent = text;
   messageBox.className = `message ${type}`;
@@ -24,11 +24,11 @@ function showMessage(text, type = 'success') {
   }, 4000);
 }
 
-// Fetch and render all books
+// Fetch all books (GET /books)
 async function fetchBooks() {
   try {
     const res = await fetch(API_URL);
-    if (!res.ok) throw new Error('Failed to load books');
+    if (!res.ok) throw new Error('Failed to fetch books from server.');
     const books = await res.json();
     renderBooks(books);
   } catch (err) {
@@ -36,11 +36,11 @@ async function fetchBooks() {
   }
 }
 
-// Render book rows into table
+// Dynamically render books into the table
 function renderBooks(books) {
   bookList.innerHTML = '';
   if (books.length === 0) {
-    bookList.innerHTML = '<tr><td colspan="5" style="text-align:center;">No books found.</td></tr>';
+    bookList.innerHTML = '<tr><td colspan="5" style="text-align:center;">No books available.</td></tr>';
     return;
   }
 
@@ -60,7 +60,7 @@ function renderBooks(books) {
   });
 }
 
-// Add or Update book on form submit
+// Add (POST /books) or Update (PUT /books/:id)
 bookForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const id = bookIdInput.value;
@@ -81,7 +81,7 @@ bookForm.addEventListener('submit', async (e) => {
     });
 
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Operation failed');
+    if (!res.ok) throw new Error(data.message || 'Operation failed.');
 
     showMessage(data.message, 'success');
     resetForm();
@@ -91,7 +91,7 @@ bookForm.addEventListener('submit', async (e) => {
   }
 });
 
-// Populate form for editing
+// Load selected book into form for editing
 function startEdit(id, title, author, price) {
   bookIdInput.value = id;
   titleInput.value = title;
@@ -102,7 +102,7 @@ function startEdit(id, title, author, price) {
   cancelBtn.classList.remove('hidden');
 }
 
-// Reset form to Add mode
+// Reset form back to Add mode
 function resetForm() {
   bookForm.reset();
   bookIdInput.value = '';
@@ -113,14 +113,14 @@ function resetForm() {
 
 cancelBtn.addEventListener('click', resetForm);
 
-// Delete a book
+// Delete a book (DELETE /books/:id)
 async function deleteBook(id) {
-  if (!confirm(`Are you sure you want to delete book ID ${id}?`)) return;
+  if (!confirm(`Delete book with ID ${id}?`)) return;
 
   try {
     const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Failed to delete book');
+    if (!res.ok) throw new Error(data.message || 'Failed to delete book.');
 
     showMessage(data.message, 'success');
     fetchBooks();
@@ -129,18 +129,18 @@ async function deleteBook(id) {
   }
 }
 
-// Find a single book by ID (GET /books/:id)
+// Search book by ID (GET /books/:id)
 searchBtn.addEventListener('click', async () => {
   const id = searchIdInput.value;
-  if (!id) return showMessage('Enter a valid Book ID to search.', 'error');
+  if (!id) return showMessage('Please enter a Book ID.', 'error');
 
   try {
     const res = await fetch(`${API_URL}/${id}`);
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Book not found');
+    if (!res.ok) throw new Error(data.message || 'Book not found.');
 
     renderBooks([data]);
-    showMessage(`Showing book ID ${id}`, 'success');
+    showMessage(`Found Book ID ${id}`, 'success');
   } catch (err) {
     showMessage(err.message, 'error');
   }
@@ -151,5 +151,5 @@ resetBtn.addEventListener('click', () => {
   fetchBooks();
 });
 
-// Initial load
+// Load books when page opens
 fetchBooks();
